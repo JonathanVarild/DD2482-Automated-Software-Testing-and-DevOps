@@ -1,0 +1,66 @@
+import { redirect } from "next/navigation";
+import ApplicationBoard from "./ApplicationBoard";
+import { getTranslations, getLocale } from "next-intl/server";
+import { requireRecruiter } from "@/server/services/authenticationService";
+import { InvalidSessionError, UnauthorizedError } from "@/lib/errors/authErrors";
+import { ApplicationStatus, getApplicationsByStatus, PaginatedApplicationsResult } from "@/server/services/adminService";
+
+const STATUSES: ApplicationStatus[] = ["unhandled", "accepted", "rejected"];
+
+/**
+ * Display the admin page for applications.
+ * Only accessible to users with the recruiter role.
+ *
+ * @returns {JSX.Element} The rendered admin page component.
+ */
+const AdminPage = async () => {
+  try {
+    await requireRecruiter();
+  } catch (error) {
+    if (error instanceof InvalidSessionError) redirect("/login");
+    if (error instanceof UnauthorizedError) redirect("/");
+    throw error;
+  }
+
+  let initialData: Record<ApplicationStatus, PaginatedApplicationsResult> = {
+    unhandled: { applications: [], total: 0, hasMore: false },
+    accepted: { applications: [], total: 0, hasMore: false },
+    rejected: { applications: [], total: 0, hasMore: false },
+  };
+
+  const t = await getTranslations("AdminPage");
+  const tDetails = await getTranslations("AdminPage.applicationDetails");
+  const locale = await getLocale();
+
+  try {
+    const options = {
+      noCompetencesText: tDetails("noCompetences"),
+      noAvailabilityText: tDetails("noAvailability"),
+      yearsText: tDetails("years"),
+      availabilityToText: tDetails("availabilityTo"),
+      locale,
+    };
+
+    const [unhandled, accepted, rejected] = await Promise.all(STATUSES.map((status) => getApplicationsByStatus(options, status, 5, 0)));
+
+    initialData = {
+      unhandled,
+      accepted,
+      rejected,
+    };
+  } catch (error) {
+    console.error(error);
+    alert(t("errors.fetchApplications"));
+  }
+
+  return (
+    <div className="min-w-4xl mx-auto">
+      <h1 className="text-3xl font-bold my-6 text-center">{t("title")}</h1>
+      <div className="flex justify-center items-center">
+        <ApplicationBoard initialData={initialData} />
+      </div>
+    </div>
+  );
+};
+
+export default AdminPage;

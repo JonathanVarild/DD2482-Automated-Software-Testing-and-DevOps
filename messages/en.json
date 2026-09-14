@@ -1,0 +1,232 @@
+{
+  "HomePage": {
+    "heading": "Gröna Lund 2.0",
+    "subheading": "Send in your application today!",
+    "applyButton": "Apply Now",
+    "loginButton": "Sign In"
+  },
+  "Nav": {
+    "home": "Home",
+    "apply": "Apply",
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout",
+    "profile": "Profile",
+    "admin": "Admin"
+  },
+  "Footer": {
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service",
+    "copyright": "All rights reserved."
+  },
+  "RegisterPage": {
+    "title": "Register account",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "username": "Username",
+    "personalNumber": "Personal Number",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "submitButton": "Register",
+    "submitting": "Registering...",
+    "placeholders": {
+      "firstName": "John",
+      "lastName": "Doe",
+      "username": "johndoe",
+      "personalNumber": "YYYYMMDD-XXXX",
+      "email": "john.doe@example.com",
+      "password": "Enter password",
+      "confirmPassword": "Re-enter password"
+    },
+    "validation": {
+      "firstNameMin": "First name must be at least 2 characters long",
+      "lastNameMin": "Last name must be at least 2 characters long",
+      "usernameMin": "Username must be at least 3 characters long",
+      "personalNumberInvalid": "Personal number must be in the format YYYYMMDD-XXXX and start with 19 or 20",
+      "emailInvalid": "Invalid email address",
+      "passwordMin": "Password must be at least 8 characters long",
+      "passwordUppercase": "Password must contain at least one uppercase letter",
+      "passwordLowercase": "Password must contain at least one lowercase letter",
+      "passwordNumber": "Password must contain at least one number",
+      "passwordsMismatch": "Passwords don't match"
+    }
+  },
+  "LoginPage": {
+    "title": "Login",
+    "username": "Username",
+    "password": "Password",
+    "submitButton": "Login",
+    "submitting": "Logging in...",
+    "placeholders": {
+      "username": "JohnDoe",
+      "password": "Enter password"
+    },
+    "validation": {
+      "usernameRequired": "Username is required",
+      "passwordRequired": "Password is required"
+    },
+    "forgotPasswordUsername": "Forgot username or password?"
+  },
+  "ResetCredentialsPage": {
+    "title": "Reset username or password",
+    "email": "Email",
+    "submitButton": "Send reset link",
+    "submitting": "Sending reset link...",
+    "placeholders": {
+      "email": "Enter your email address"
+    },
+    "forgotEmail": "Forgot your linked email address? Contact support for help.",
+    "description": "Enter your email address and we'll send a link to reset your username or password.",
+    "sendResetLink": "Send",
+    "backToLogin": "Back to login",
+    "emailNotFoundError": "The entered email is not registered",
+    "emailRequired": "Email is required"
+  },
+  "ProfilePage": {
+    "hello": "Hello",
+    "placeholders": {
+      "username": "Enter new username",
+      "email": "Enter new email",
+      "pnr": "Enter new personal number",
+      "password": "Enter new password"
+    },
+    "current": {
+      "email": "Current email: ",
+      "pnr": "Current personal number: ",
+      "username": "Current username: ",
+      "password": "Current password: "
+    },
+    "updateSuccess": "Personal information updated",
+    "updating": "Updating...",
+    "updateButton": "Update",
+    "unknownError": "Unknown error occurred during update profile.",
+    "unexpectedError": "Update profile failed due to an unexpected error.",
+    "failedFetchingData": "The user information could not be retrieved"
+  },
+  "ApplyPage": {
+    "title": "Apply for a position",
+    "loadingData": "Loading your application data...",
+    "errors": {
+      "invalidSessionError": "Your session has expired. Please log in again.",
+      "loadingError": "Could not load your application data.",
+      "competenceInvalidInput": "Select a competence and enter years greater than 0.",
+      "availabilityInvalidInput": "Select both a start date and an end date."
+    },
+    "applicationStatus": {
+      "title": "Application status",
+      "description": "You have submitted an application.",
+      "statusLabel": "Status",
+      "submittedAtLabel": "Submitted",
+      "updatedAtLabel": "Last updated",
+      "statuses": {
+        "unhandled": "Unhandled",
+        "accepted": "Accepted",
+        "rejected": "Rejected"
+      }
+    },
+    "contactInformation": {
+      "title": "Contact Information",
+      "email": "Email",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "username": "Username",
+      "pnr": "Personal number"
+    },
+    "competences": {
+      "title": "Competences",
+      "competence": "Competence",
+      "selectPlaceholder": "Select competence",
+      "years": "Years",
+      "yearsPlaceholder": "e.g. 1.5",
+      "add": "Add",
+      "remove": "Remove"
+    },
+    "availability": {
+      "title": "Availability",
+      "add": "Add date range",
+      "remove": "Remove"
+    },
+    "submitButton": "Submit application",
+    "submitting": "Submitting...",
+    "submitSuccess": "Application submitted.",
+    "cancelApplication": "Your application has been cleared.",
+    "cancelButton": "Cancel"
+  },
+  "AdminPage": {
+    "title": "Admin Tool for Recruitment Applications",
+    "errors": {
+      "fetchApplications": "Failed to load applications. Please try again later."
+    },
+    "boardColumns": {
+      "unhandled": "Unhandled",
+      "accepted": "Accepted",
+      "rejected": "Rejected",
+      "loadMore": "Load More",
+      "noApplications": "No applications"
+    },
+    "applicationCard": {
+      "appliedDate": "Applied",
+      "updateError": "Failed to update application status. Please try again.",
+      "statusChanged": "The application status has been changed by someone else. Please try again.",
+      "moveToAccepted": "Move to Accepted",
+      "moveToRejected": "Move to Rejected",
+      "moveToUnhandled": "Move to Unhandled"
+    },
+    "applicationDetails": {
+      "email": "Email",
+      "username": "Username",
+      "applicationDate": "Application Date",
+      "status": "Status",
+      "dialogDescription": "View and manage application details",
+      "answersHeader": "Questions and Answers",
+      "question": "Question",
+      "answer": "Answer",
+      "noCompetences": "No competences listed",
+      "noAvailability": "No availability listed",
+      "years": "years",
+      "availabilityTo": "to",
+      "questionsToAnswer": {
+        "competences": "What competences do you have that make you suitable for this position?",
+        "availability": "What is your availability?"
+      }
+    }
+  },
+  "errors": {
+    "unknownError": "An unknown error occurred.",
+    "invalidCredentialsError": "Invalid username or password.",
+    "invalidSessionError": "Your session has expired. Please log in again.",
+    "invalidFormDataError": "The form data you provided is invalid. Please check and try again.",
+    "conflictingSignupDataError": "A user with this personal number, email, or username already exists. Please use different information.",
+    "conflictingApplicationError": "You already have an active application.",
+    "invalidResetTokenError": "The reset token is invalid or has expired."
+  },
+  "PrivacyPage": {
+    "effectiveDate": "Effective date"
+  },
+  "mockEmail": {
+    "from": "From",
+    "to": "To",
+    "subject": "Subject",
+    "subjectContent": "Reset password or username",
+    "hello": "Hello",
+    "emailContent": "We have recieved a request to change the password or username of your account at RecruiterApp. If this request was not done by you, please ignore this email.",
+    "link": "To reset password or username please use this time limited link"
+  },
+  "ResetCredentialsTokenPage": {
+    "title": "Reset password or username",
+    "placeholders": {
+      "username": "johndoe",
+      "password": "Enter password"
+    },
+    "validation": {
+      "usernameMin": "Username must be at least 3 characters",
+      "passwordMin": "Password must be at least 8 characters",
+      "passwordUppercase": "Password must contain at least one uppercase letter",
+      "passwordLowercase": "Password must contain at least one lowercase letter",
+      "passwordNumber": "Password must contain at least one number"
+    },
+    "invalidToken": "The reset link is invalid or has expired.",
+    "updateSuccess": "Credentials updated successfully"
+  }
+}
