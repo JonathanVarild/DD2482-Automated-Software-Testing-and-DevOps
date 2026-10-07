@@ -108,13 +108,14 @@ jobs:
                   exit 1
                   fi
 
-            # Plan the Terraform configuration.
+            # Plan the Terraform configuration, output the plan so it can be used in apply step,
+            # and set a lock timeout to prevent simultaneous runs from interfering with each other.
             - name: Terraform plan
               working-directory: terraform
               env:
                   TF_VAR_app_image: ${{ env.APP_IMAGE }}
                   TF_VAR_database_image: ${{ env.DATABASE_IMAGE }}
-              run: terraform plan -out=tfplan
+              run: terraform plan -lock-timeout=5m -out=tfplan
 
             # Apply the Terraform configuration to the VPS.
             - name: Terraform apply
