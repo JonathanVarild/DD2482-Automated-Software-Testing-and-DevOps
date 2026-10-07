@@ -23,14 +23,16 @@ jobs:
         runs-on: ubuntu-latest
 
         env:
-            # Set Terraform to run in automation mode
+            # Set Terraform to run in automation mode and disable interactive prompts.
             TF_IN_AUTOMATION: true
+            TF_INPUT: false
 
             # Terraform Cloud token for authentication
             TF_TOKEN_app_terraform_io: ${{ secrets.HCP_TERRAFORM_TOKEN }}
 
             # Additional Terraform variables
             TF_VAR_environment: production
+            TF_VAR_hostname: devops.jompecloud.com # Hardcode this until we implement preview environments.
 
             # Application-specific environment variables
             TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
@@ -60,7 +62,7 @@ jobs:
 
             # Check basic connectivity and that we can interface with Docker.
             - name: Test VPS connection
-              run: ssh deploy@92.222.25.69 docker ps
+              run: ssh deploy@92.222.25.69 'docker info >/dev/null'
 
             # Authenticate with GitHub Container Registry so we cna push Docker images.
             - name: Log in to GHCR
