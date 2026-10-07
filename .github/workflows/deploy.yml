@@ -1,0 +1,107 @@
+name: Deploy production
+
+# Run the action when we push to main and also allow it to be ran manually.
+on:
+    push:
+        branches:
+            - main
+    workflow_dispatch:
+
+# Allow workflow to read repo and push packages to GHCR
+permissions:
+    contents: read
+    packages: write
+
+# Ensure that only one deployment job runs at a time
+concurrency:
+    group: production
+    cancel-in-progress: false
+
+jobs:
+    deploy:
+        name: Deploy
+        runs-on: ubuntu-latest
+
+        env:
+            # Set Terraform to run in automation mode
+            TF_IN_AUTOMATION: true
+
+            # Terraform Cloud token for authentication
+            TF_TOKEN_app_terraform_io: ${{ secrets.HCP_TERRAFORM_TOKEN }}
+
+            # Additional Terraform variables
+            TF_VAR_environment: production
+
+            # Application-specific environment variables
+            TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
+            TF_VAR_session_secret: ${{ secrets.SESSION_SECRET }}
+
+        steps:
+            # Check out the repo so we can use the Terraform configs.
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            # Instantiate Terraform CLI for use in the workflow
+            - name: Set up Terraform
+              uses: hashicorp/setup-terraform@v3
+
+            # Save the SSH key to file so it can be used for connectivity.
+            - name: Configure SSH
+              shell: bash
+              run: |
+                  mkdir -p ~/.ssh
+                  chmod 700 ~/.ssh
+
+                  printf '%s\n' "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_ed25519
+                  chmod 600 ~/.ssh/id_ed25519
+
+                  ssh-keyscan -H 92.222.25.69 >> ~/.ssh/known_hosts
+                  chmod 600 ~/.ssh/known_hosts
+
+            # Check basic connectivity and that we can interface with Docker.
+            - name: Test VPS connection
+              run: ssh deploy@92.222.25.69 docker ps
+
+            # Authenticate with GitHub Container Registry so we cna push Docker images.
+            - name: Log in to GHCR
+              uses: docker/login-action@v3
+              with:
+                  registry: ghcr.io
+                  username: ${{ github.actor }}
+                  password: ${{ secrets.GITHUB_TOKEN }}
+
+            # Set the image name based on the repository and commit SHA.
+            - name: Set image name
+              shell: bash
+              run: |
+                  APP_IMAGE="ghcr.io/${GITHUB_REPOSITORY,,}:${GITHUB_SHA}"
+                  DATABASE_IMAGE="ghcr.io/${GITHUB_REPOSITORY,,}-database:${GITHUB_SHA}"
+                  echo "APP_IMAGE=$APP_IMAGE" >> "$GITHUB_ENV"
+                  echo "DATABASE_IMAGE=$DATABASE_IMAGE" >> "$GITHUB_ENV"
+
+            # Build the app and database Docker images.
+            - name: Build images
+              run: |
+                  docker build -t "$APP_IMAGE" .
+                  docker build -t "$DATABASE_IMAGE" database
+
+            # Upload the images to GitHub Container Registry so they can be pulled by the VPS.
+            - name: Push images
+              run: |
+                  docker push "$APP_IMAGE"
+                  docker push "$DATABASE_IMAGE"
+
+            # Initalize Terraform and ensure that the lockfile is up to date.
+            # This prevents the workflow from running if a change has been made
+            # to the Terraform configuration without updating the lockfile.
+            - name: Terraform init
+              working-directory: terraform
+              run: terraform init -lockfile=readonly
+
+            # Apply the Terraform configuration to the VPS.
+            - name: Terraform apply
+              working-directory: terraform
+              env:
+                  TF_VAR_app_image: ${{ env.APP_IMAGE }}
+                  TF_VAR_database_image: ${{ env.DATABASE_IMAGE }}
+              run: terraform apply -auto-approve tfplan
