@@ -143,4 +143,5 @@ jobs:
                       --fail --silent --show-error \
                       --request POST \
                       --header "Authorization: Bearer $TF_TOKEN_app_terraform_io" \
+                      --header "Content-Type: application/vnd.api+json" \
                       "https://app.terraform.io/api/v2/organizations/$TF_CLOUD_ORGANIZATION/workspaces/$TF_WORKSPACE/actions/safe-delete"
