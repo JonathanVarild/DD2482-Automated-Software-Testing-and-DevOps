@@ -45,7 +45,7 @@ export default async function LocaleLayout({ children, params }: Props) {
           <AuthProvider loggedInUser={authenticatedUserData}>
             <Header />
             {children}
-            <Footer />
+            <Footer version={process.env.APP_VERSION ?? "development"} />
           </AuthProvider>
         </NextIntlClientProvider>
       </body>

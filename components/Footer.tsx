@@ -6,11 +6,11 @@ import { Separator } from "@/components/ui/separator";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 
 /**
- * Footer component displaying copyright, language switcher, and policy links.
+ * Footer component displaying copyright, version, language switcher, and policy links.
  *
  * @returns {JSX.Element} The rendered Footer component.
  */
-export function Footer() {
+export function Footer({ version }: { version: string }) {
   const t = useTranslations("Footer");
 
   const links = [
@@ -24,7 +24,7 @@ export function Footer() {
       <div className="container mx-auto px-8 py-4">
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
           <p>
-            © {new Date().getFullYear()} {t("copyright")}
+            © {new Date().getFullYear()} {t("copyright")} - {t("version", { version })}
           </p>
           <div className="flex items-center gap-6">
             <LanguageSwitcher />
