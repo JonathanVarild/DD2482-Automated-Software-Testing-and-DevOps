@@ -23,9 +23,9 @@ export async function GET(request: Request) {
       userID = userData?.id || undefined;
     } catch {}
 
-    // Delete session via cookie and redirect to home page.
+    // Delete the session and let the client handle navigation.
     await deleteSession();
-    const res = NextResponse.redirect(new URL("/", request.url));
+    const res = new NextResponse(null, { status: 204 });
 
     // Clear the session cookie.
     res.cookies.delete("session");

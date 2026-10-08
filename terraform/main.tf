@@ -68,6 +68,7 @@ resource "docker_container" "app" {
     "DB_PASSWORD=${var.db_password}",
     "DB_NAME=${var.db_name}",
     "SESSION_SECRET=${var.session_secret}",
+    "APP_VERSION=${substr(element(reverse(split(":", var.app_image)), 0), 0, 7)}",
     "VIRTUAL_HOST=${var.hostname}",
     "VIRTUAL_PORT=3000",
     "LETSENCRYPT_HOST=${var.hostname}"

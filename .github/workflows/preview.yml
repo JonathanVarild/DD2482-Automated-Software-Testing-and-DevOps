@@ -12,6 +12,7 @@ on:
 permissions:
     contents: read
     packages: write
+    pull-requests: write
 
 # Ensure that only one Terraform job runs at a time
 concurrency:
@@ -166,3 +167,16 @@ jobs:
             - name: Terraform apply
               working-directory: terraform
               run: terraform apply -auto-approve tfplan
+
+            # Make comment in the PR with the deployed preview URL.
+            - name: Comment preview URL
+              uses: actions/github-script@v9
+              env:
+                  PREVIEW_URL: https://${{ env.TF_VAR_hostname }}
+              with:
+                  script: |
+                      await github.rest.issues.createComment({
+                        ...context.repo,
+                        issue_number: context.payload.pull_request.number,
+                        body: `Preview deployed successfully: ${process.env.PREVIEW_URL}`,
+                      });
