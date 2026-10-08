@@ -17,7 +17,8 @@
   "Footer": {
     "privacyPolicy": "Integritetspolicy",
     "termsOfService": "Användarvillkor",
-    "copyright": "Alla rättigheter förbehållna."
+    "copyright": "Alla rättigheter förbehållna.",
+    "version": "Version {version}"
   },
   "RegisterPage": {
     "title": "Registrera konto",
