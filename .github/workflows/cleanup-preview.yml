@@ -2,149 +2,149 @@ name: Cleanup PR preview
 
 # Run the action when a PR is closed.
 on:
-    pull_request:
-        types:
-            - closed
+  pull_request:
+    types:
+      - closed
 
 # Allow workflow to read repo and access preview images in GHCR
 permissions:
-    contents: read
-    packages: write
+  contents: read
+  packages: write
 
 # Wait for any active deployment of this preview before cleaning it up
 concurrency:
-    group: terraform-vps
-    cancel-in-progress: false
-    queue: max
+  group: terraform-vps
+  cancel-in-progress: false
+  queue: max
 
 jobs:
-    cleanup:
-        name: Cleanup PR ${{ github.event.pull_request.number }}
-        runs-on: ubuntu-latest
+  cleanup:
+    name: Cleanup PR ${{ github.event.pull_request.number }}
+    runs-on: ubuntu-latest
 
-        # Ensure the workflow only runs for PRs in this repo.
-        # This ensures that forks cannot run arbitrary code on the VPS, etc.
-        if: github.event.pull_request.head.repo.full_name == github.repository
+    # Ensure the workflow only runs for PRs in this repo.
+    # This ensures that forks cannot run arbitrary code on the VPS, etc.
+    if: github.event.pull_request.head.repo.full_name == github.repository
 
+    env:
+      # Set Terraform to run in automation mode and disable interactive prompts.
+      TF_IN_AUTOMATION: true
+      TF_INPUT: false
+
+      # Terraform Cloud token, organization and per-PR workspace.
+      TF_TOKEN_app_terraform_io: ${{ secrets.HCP_TERRAFORM_TOKEN }}
+      TF_CLOUD_ORGANIZATION: devops-course-varild-jennha
+      TF_WORKSPACE: pr-${{ github.event.pull_request.number }}
+
+      # Additional Terraform variables
+      TF_VAR_environment: pr-${{ github.event.pull_request.number }}
+
+      # Application-specific environment variables.
+      TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
+      TF_VAR_session_secret: ${{ secrets.SESSION_SECRET }}
+      TF_VAR_hostname: pr-${{ github.event.pull_request.number }}.devops.jompecloud.com
+      TF_VAR_proxy_network: dd2482-proxy
+
+    steps:
+      # Use the base branch configuration when cleaning up a closed PR.
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.ref }}
+
+      # Instantiate Terraform CLI for use in the workflow
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      # Save the SSH key to file so it can be used for connectivity.
+      - name: Configure SSH
+        shell: bash
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+
+          printf '%s\n' "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+
+          ssh-keyscan -H 92.222.25.69 >> ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      # Check basic connectivity and that we can interface with Docker.
+      - name: Test VPS connection
+        run: ssh deploy@92.222.25.69 'docker info >/dev/null'
+
+      # Authenticate with GitHub Container Registry so we can retrieve the preview image variables for cleanup.
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Terraform requires the original preview image variables during destroy.
+      - name: Set preview image names
+        shell: bash
         env:
-            # Set Terraform to run in automation mode and disable interactive prompts.
-            TF_IN_AUTOMATION: true
-            TF_INPUT: false
+          IMAGE_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          IMAGE_REPOSITORY="ghcr.io/${GITHUB_REPOSITORY,,}"
 
-            # Terraform Cloud token, organization and per-PR workspace.
-            TF_TOKEN_app_terraform_io: ${{ secrets.HCP_TERRAFORM_TOKEN }}
-            TF_CLOUD_ORGANIZATION: devops-course-varild-jennha
-            TF_WORKSPACE: pr-${{ github.event.pull_request.number }}
+          echo "TF_VAR_app_image=$IMAGE_REPOSITORY:$IMAGE_SHA" >> "$GITHUB_ENV"
+          echo "TF_VAR_database_image=$IMAGE_REPOSITORY-database:$IMAGE_SHA" >> "$GITHUB_ENV"
 
-            # Additional Terraform variables
-            TF_VAR_environment: pr-${{ github.event.pull_request.number }}
+      # Check whether the PR specific HCP Terraform workspace exists.
+      - name: Check Terraform workspace
+        id: workspace_check
+        shell: bash
+        run: |
+          STATUS="$(curl \
+              --silent --show-error \
+              --output /dev/null \
+              --write-out '%{http_code}' \
+              --header "Authorization: Bearer $TF_TOKEN_app_terraform_io" \
+              "https://app.terraform.io/api/v2/organizations/$TF_CLOUD_ORGANIZATION/workspaces/$TF_WORKSPACE")"
 
-            # Application-specific environment variables.
-            TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
-            TF_VAR_session_secret: ${{ secrets.SESSION_SECRET }}
-            TF_VAR_hostname: pr-${{ github.event.pull_request.number }}.devops.jompecloud.com
-            TF_VAR_proxy_network: dd2482-proxy
+          if [[ "$STATUS" == "200" ]]; then
+              echo "exists=true" >> "$GITHUB_OUTPUT"
+          elif [[ "$STATUS" == "404" ]]; then
+              echo "exists=false" >> "$GITHUB_OUTPUT"
+          else
+              echo "::error::Unable to check for the Terraform workspace with name $TF_WORKSPACE ($STATUS)."
+              exit 1
+          fi
 
-        steps:
-            # Use the base branch configuration when cleaning up a closed PR.
-            - name: Checkout repository
-              uses: actions/checkout@v4
-              with:
-                  ref: ${{ github.event.pull_request.base.ref }}
+      # Initalize the Terraform working directory and download provider plugins.
+      - name: Terraform init
+        if: steps.workspace_check.outputs.exists == 'true'
+        working-directory: terraform
+        run: terraform init
 
-            # Instantiate Terraform CLI for use in the workflow
-            - name: Set up Terraform
-              uses: hashicorp/setup-terraform@v3
+      # Verify the Terraform lock file and ensure that the lockfile is up to date.
+      # This prevents the workflow from running if a change has been made
+      # to the Terraform configuration without updating the lockfile.
+      - name: Verify Terraform lock file
+        run: |
+          if ! git diff --exit-code -- terraform/.terraform.lock.hcl; then
+          echo "::error::.terraform.lock.hcl is out of date."
+          exit 1
+          fi
 
-            # Save the SSH key to file so it can be used for connectivity.
-            - name: Configure SSH
-              shell: bash
-              run: |
-                  mkdir -p ~/.ssh
-                  chmod 700 ~/.ssh
+      # Destroy the preview infrastructure on the VPS.
+      - name: Destroy preview
+        if: steps.workspace_check.outputs.exists == 'true'
+        working-directory: terraform
+        run: terraform destroy -auto-approve -lock-timeout=10m
 
-                  printf '%s\n' "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_ed25519
-                  chmod 600 ~/.ssh/id_ed25519
-
-                  ssh-keyscan -H 92.222.25.69 >> ~/.ssh/known_hosts
-                  chmod 600 ~/.ssh/known_hosts
-
-            # Check basic connectivity and that we can interface with Docker.
-            - name: Test VPS connection
-              run: ssh deploy@92.222.25.69 'docker info >/dev/null'
-
-            # Authenticate with GitHub Container Registry so we can retrieve the preview image variables for cleanup.
-            - name: Log in to GHCR
-              uses: docker/login-action@v3
-              with:
-                  registry: ghcr.io
-                  username: ${{ github.actor }}
-                  password: ${{ secrets.GITHUB_TOKEN }}
-
-            # Terraform requires the original preview image variables during destroy.
-            - name: Set preview image names
-              shell: bash
-              env:
-                  IMAGE_SHA: ${{ github.event.pull_request.head.sha }}
-              run: |
-                  IMAGE_REPOSITORY="ghcr.io/${GITHUB_REPOSITORY,,}"
-
-                  echo "TF_VAR_app_image=$IMAGE_REPOSITORY:$IMAGE_SHA" >> "$GITHUB_ENV"
-                  echo "TF_VAR_database_image=$IMAGE_REPOSITORY-database:$IMAGE_SHA" >> "$GITHUB_ENV"
-
-            # Check whether the PR specific HCP Terraform workspace exists.
-            - name: Check Terraform workspace
-              id: workspace_check
-              shell: bash
-              run: |
-                  STATUS="$(curl \
-                      --silent --show-error \
-                      --output /dev/null \
-                      --write-out '%{http_code}' \
-                      --header "Authorization: Bearer $TF_TOKEN_app_terraform_io" \
-                      "https://app.terraform.io/api/v2/organizations/$TF_CLOUD_ORGANIZATION/workspaces/$TF_WORKSPACE")"
-
-                  if [[ "$STATUS" == "200" ]]; then
-                      echo "exists=true" >> "$GITHUB_OUTPUT"
-                  elif [[ "$STATUS" == "404" ]]; then
-                      echo "exists=false" >> "$GITHUB_OUTPUT"
-                  else
-                      echo "::error::Unable to check for the Terraform workspace with name $TF_WORKSPACE ($STATUS)."
-                      exit 1
-                  fi
-
-            # Initalize the Terraform working directory and download provider plugins.
-            - name: Terraform init
-              if: steps.workspace_check.outputs.exists == 'true'
-              working-directory: terraform
-              run: terraform init
-
-            # Verify the Terraform lock file and ensure that the lockfile is up to date.
-            # This prevents the workflow from running if a change has been made
-            # to the Terraform configuration without updating the lockfile.
-            - name: Verify Terraform lock file
-              run: |
-                  if ! git diff --exit-code -- terraform/.terraform.lock.hcl; then
-                  echo "::error::.terraform.lock.hcl is out of date."
-                  exit 1
-                  fi
-
-            # Destroy the preview infrastructure on the VPS.
-            - name: Destroy preview
-              if: steps.workspace_check.outputs.exists == 'true'
-              working-directory: terraform
-              run: terraform destroy -auto-approve -lock-timeout=10m
-
-            # Delete the empty HCP Terraform workspace and its preview state.
-            - name: Delete Terraform workspace
-              if: steps.workspace_check.outputs.exists == 'true'
-              run: |
-                  curl \
-                      --fail --silent --show-error \
-                      --retry 10 \
-                      --retry-delay 5 \
-                      --retry-all-errors \
-                      --request POST \
-                      --header "Authorization: Bearer $TF_TOKEN_app_terraform_io" \
-                      --header "Content-Type: application/vnd.api+json" \
-                      "https://app.terraform.io/api/v2/organizations/$TF_CLOUD_ORGANIZATION/workspaces/$TF_WORKSPACE/actions/safe-delete"
+      # Delete the empty HCP Terraform workspace and its preview state.
+      - name: Delete Terraform workspace
+        if: steps.workspace_check.outputs.exists == 'true'
+        run: |
+          curl \
+              --fail --silent --show-error \
+              --retry 10 \
+              --retry-delay 5 \
+              --retry-all-errors \
+              --request POST \
+              --header "Authorization: Bearer $TF_TOKEN_app_terraform_io" \
+              --header "Content-Type: application/vnd.api+json" \
+              "https://app.terraform.io/api/v2/organizations/$TF_CLOUD_ORGANIZATION/workspaces/$TF_WORKSPACE/actions/safe-delete"

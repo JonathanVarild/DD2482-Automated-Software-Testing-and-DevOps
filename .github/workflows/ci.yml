@@ -1,0 +1,47 @@
+name: Continuous integration
+
+# Run the action when we push or make a pull request to any branch.
+on:
+  push:
+  pull_request:
+
+# Allow workflow to read repo contents.
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    name: CI
+    runs-on: ubuntu-latest
+
+    steps:
+      # Check out the repo so we can run the tests.
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Instantiate Node.js for use in the workflow
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # Install the dependencies needed to run the tests.
+      - name: Install dependencies
+        run: npm ci
+
+      # Run linting to check for code style issues.
+      - name: Lint
+        run: npm run lint
+
+      # Run Prettier formatting check to ensure code is formatted correctly.
+      - name: Check formatting
+        run: npm run format:check
+
+      # Run type checking to ensure TypeScript types are valid.
+      - name: Type check
+        run: npm run typecheck
+
+      # Run unit tests to ensure the code behaves as expected.
+      - name: Test
+        run: npm run test:unit
