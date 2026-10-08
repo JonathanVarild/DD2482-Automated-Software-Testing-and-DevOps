@@ -5,17 +5,18 @@ on:
     push:
         branches:
             - main
-    workflow_dispatch:
 
-# Allow workflow to read repo and push packages to GHCR
+# Allow workflow to read repo, push packages to GHCR, and read pull requests
 permissions:
     contents: read
     packages: write
+    pull-requests: read
 
-# Ensure that only one deployment job runs at a time
+# Ensure that only one Terraform job runs at a time
 concurrency:
-    group: production
+    group: terraform-vps
     cancel-in-progress: false
+    queue: max
 
 jobs:
     deploy:
@@ -29,6 +30,7 @@ jobs:
 
             # Terraform Cloud token for authentication
             TF_TOKEN_app_terraform_io: ${{ secrets.HCP_TERRAFORM_TOKEN }}
+            TF_WORKSPACE: devops-production
 
             # Additional Terraform variables
             TF_VAR_environment: production
@@ -36,7 +38,7 @@ jobs:
             # Application-specific environment variables
             TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
             TF_VAR_session_secret: ${{ secrets.SESSION_SECRET }}
-            TF_VAR_hostname: devops.jompecloud.com # Hardcode this until we implement preview environments.
+            TF_VAR_hostname: devops.jompecloud.com
             TF_VAR_proxy_network: dd2482-proxy
 
         steps:
@@ -73,23 +75,60 @@ jobs:
                   username: ${{ github.actor }}
                   password: ${{ secrets.GITHUB_TOKEN }}
 
-            # Set the image name based on the repository and commit SHA.
-            - name: Set image name
+            # Find the merged PR associated with this push to main.
+            - name: Find merged PR
+              id: merged_pr
+              if: github.event.forced == false
+              uses: actions/github-script@v9
+              with:
+                  script: |
+                      const { data: pullRequests } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+                        ...context.repo,
+                        commit_sha: context.sha,
+                      });
+
+                      const mergedPullRequest = pullRequests.find(
+                        ({ merged_at, base, merge_commit_sha }) =>
+                          merged_at &&
+                          base.ref === "main" &&
+                          merge_commit_sha === context.sha,
+                      );
+
+                      core.setOutput("head_sha", mergedPullRequest?.head.sha ?? "");
+
+            # Use the PR head SHA when available, otherwise use the current main SHA.
+            - name: Select production images
               shell: bash
+              env:
+                  PR_HEAD_SHA: ${{ steps.merged_pr.outputs.head_sha }}
               run: |
-                  APP_IMAGE="ghcr.io/${GITHUB_REPOSITORY,,}:${GITHUB_SHA}"
-                  DATABASE_IMAGE="ghcr.io/${GITHUB_REPOSITORY,,}-database:${GITHUB_SHA}"
-                  echo "APP_IMAGE=$APP_IMAGE" >> "$GITHUB_ENV"
-                  echo "DATABASE_IMAGE=$DATABASE_IMAGE" >> "$GITHUB_ENV"
+                  IMAGE_SHA="${PR_HEAD_SHA:-$GITHUB_SHA}"
+                  IMAGE_REPOSITORY="ghcr.io/${GITHUB_REPOSITORY,,}"
+
+                  echo "APP_IMAGE=$IMAGE_REPOSITORY:$IMAGE_SHA" >> "$GITHUB_ENV"
+                  echo "DATABASE_IMAGE=$IMAGE_REPOSITORY-database:$IMAGE_SHA" >> "$GITHUB_ENV"
+
+            # Fail rather than rebuilding if the merged PR images are unexpectedly missing.
+            - name: Verify merged PR images
+              if: steps.merged_pr.outputs.head_sha != ''
+              run: |
+                  for image in "$APP_IMAGE" "$DATABASE_IMAGE"; do
+                      docker manifest inspect "$image" >/dev/null || {
+                          echo "::error::Expected image does not exist: $image"
+                          exit 1
+                      }
+                  done
 
             # Build the app and database Docker images.
-            - name: Build images
+            - name: Build fresh images
+              if: steps.merged_pr.outputs.head_sha == ''
               run: |
                   docker build -t "$APP_IMAGE" .
                   docker build -t "$DATABASE_IMAGE" database
 
             # Upload the images to GitHub Container Registry so they can be pulled by the VPS.
-            - name: Push images
+            - name: Push fresh images
+              if: steps.merged_pr.outputs.head_sha == ''
               run: |
                   docker push "$APP_IMAGE"
                   docker push "$DATABASE_IMAGE"
@@ -116,7 +155,7 @@ jobs:
               env:
                   TF_VAR_app_image: ${{ env.APP_IMAGE }}
                   TF_VAR_database_image: ${{ env.DATABASE_IMAGE }}
-              run: terraform plan -lock-timeout=5m -out=tfplan
+              run: terraform plan -lock-timeout=10m -out=tfplan
 
             # Apply the Terraform configuration to the VPS.
             - name: Terraform apply

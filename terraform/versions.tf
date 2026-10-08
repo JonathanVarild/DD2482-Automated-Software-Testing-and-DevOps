@@ -3,12 +3,6 @@ terraform {
 
   cloud {
     organization = "devops-course-varild-jennha"
-
-    workspaces {
-      name    = "devops-production"
-    #   project = "devops"
-    #   tags    = ["devops-app"]
-    }
   }
 
   required_providers {
