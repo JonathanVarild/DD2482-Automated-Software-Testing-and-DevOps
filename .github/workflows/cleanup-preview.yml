@@ -141,6 +141,9 @@ jobs:
               run: |
                   curl \
                       --fail --silent --show-error \
+                      --retry 10 \
+                      --retry-delay 5 \
+                      --retry-all-errors \
                       --request POST \
                       --header "Authorization: Bearer $TF_TOKEN_app_terraform_io" \
                       --header "Content-Type: application/vnd.api+json" \
