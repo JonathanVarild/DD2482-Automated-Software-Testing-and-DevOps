@@ -1,0 +1,55 @@
+name: E2E tests
+
+# Make this workflow callable from other workflows and require the preview URL and head SHA as inputs.
+on:
+  workflow_call:
+    inputs:
+      preview_url:
+        required: true
+        type: string
+      head_sha:
+        required: true
+        type: string
+
+# Allow workflow to read repo contents.
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    name: E2E tests
+    runs-on: ubuntu-latest
+
+    # Set up environment variable for the URL that the E2E tests should run against.
+    env:
+      PLAYWRIGHT_BASE_URL: ${{ inputs.preview_url }}
+
+    steps:
+      # Check out the code deployed to the preview.
+      - name: Checkout PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.head_sha }}
+
+      # Set up Node.js environment for running the E2E tests.
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # Install project dependencies.
+      - name: Install dependencies
+        run: npm ci
+
+      # Install Chromium for Playwright tests.
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      # Wait until the deployed preview is reachable.
+      - name: Wait for preview
+        run: curl --fail --silent --show-error --retry 12 --retry-delay 5 --retry-all-errors "$PLAYWRIGHT_BASE_URL/en" >/dev/null
+
+      # Run E2E tests against the deployed preview.
+      - name: E2E tests
+        run: npm run test:e2e

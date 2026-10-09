@@ -1,9 +1,8 @@
 name: Continuous integration
 
-# Run the action when we push or make a pull request to any branch.
+# Run CI on every push.
 on:
   push:
-  pull_request:
 
 # Allow workflow to read repo contents.
 permissions:
@@ -42,6 +41,6 @@ jobs:
       - name: Type check
         run: npm run typecheck
 
-      # Run unit tests to ensure the code behaves as expected.
-      - name: Test
+      # Run tests to ensure the code behaves as expected.
+      - name: Unit tests
         run: npm run test:unit

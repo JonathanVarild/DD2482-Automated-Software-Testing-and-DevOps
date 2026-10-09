@@ -164,3 +164,12 @@ jobs:
           TF_VAR_app_image: ${{ env.APP_IMAGE }}
           TF_VAR_database_image: ${{ env.DATABASE_IMAGE }}
         run: terraform apply -auto-approve tfplan
+
+  # Run the End-to-End tests after deployment to ensure the deployed application is functioning correctly.
+  e2e:
+    name: E2E tests
+    needs: deploy
+    uses: ./.github/workflows/e2e.yml
+    with:
+      preview_url: https://devops.jompecloud.com
+      head_sha: ${{ github.sha }}

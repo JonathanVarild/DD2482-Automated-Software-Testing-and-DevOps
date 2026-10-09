@@ -27,3 +27,4 @@ next-env.d.ts
 .eslintcache
 
 /terraform/.terraform
+test-results
