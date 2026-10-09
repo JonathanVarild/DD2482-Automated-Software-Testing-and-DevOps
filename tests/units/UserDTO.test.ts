@@ -35,8 +35,7 @@ describe("newUserSchema", () => {
     });
 
     it("rejects a missing name", () => {
-      const { name, ...noName } = validUser;
-      const result = newUserSchema.safeParse({ ...noName });
+      const result = newUserSchema.safeParse({ ...validUser, name: undefined });
       expect(result.success).toBe(false);
     });
   });
@@ -58,8 +57,7 @@ describe("newUserSchema", () => {
     });
 
     it("rejects a missing surname", () => {
-      const { surname, ...noSurname } = validUser;
-      const result = newUserSchema.safeParse({ ...noSurname });
+      const result = newUserSchema.safeParse({ ...validUser, surname: undefined });
       expect(result.success).toBe(false);
     });
   });
@@ -96,8 +94,7 @@ describe("newUserSchema", () => {
     });
 
     it("rejects a missing pnr", () => {
-      const { pnr, ...noPnr } = validUser;
-      const result = newUserSchema.safeParse({ ...noPnr });
+      const result = newUserSchema.safeParse({ ...validUser, pnr: undefined });
       expect(result.success).toBe(false);
     });
   });
@@ -119,8 +116,7 @@ describe("newUserSchema", () => {
     });
 
     it("rejects a missing email", () => {
-      const { email, ...noEmail } = validUser;
-      const result = newUserSchema.safeParse({ ...noEmail });
+      const result = newUserSchema.safeParse({ ...validUser, email: undefined });
       expect(result.success).toBe(false);
     });
   });
@@ -162,8 +158,7 @@ describe("newUserSchema", () => {
     });
 
     it("rejects a missing password", () => {
-      const { password, ...noPassword } = validUser;
-      const result = newUserSchema.safeParse({ ...noPassword });
+      const result = newUserSchema.safeParse({ ...validUser, password: undefined });
       expect(result.success).toBe(false);
     });
   });
@@ -185,8 +180,7 @@ describe("newUserSchema", () => {
     });
 
     it("rejects a missing username", () => {
-      const { username, ...rest } = validUser;
-      const result = newUserSchema.safeParse(rest);
+      const result = newUserSchema.safeParse({ ...validUser, username: undefined });
       expect(result.success).toBe(false);
     });
   });
@@ -209,8 +203,7 @@ describe("registerFormSchema", () => {
   });
 
   it("rejects when confirmPassword is missing", () => {
-    const { confirmPassword, ...noConfirmPassword } = validForm;
-    const result = registerFormSchema.safeParse({ ...noConfirmPassword });
+    const result = registerFormSchema.safeParse({ ...validForm, confirmPassword: undefined });
     expect(result.success).toBe(false);
   });
 });

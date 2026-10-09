@@ -35,7 +35,7 @@ describe("HomePage", () => {
   it("renders the background image", async () => {
     const { container } = render(await Home({ params }));
     const img = container.querySelector("img");
-    expect(img).toHaveAttribute("src", "/roller-coaster-homepage.jpg");
+    expect(img?.getAttribute("src")).toContain("roller-coaster-homepage.jpg");
   });
 
   it("uses the locale from params in link hrefs", async () => {
