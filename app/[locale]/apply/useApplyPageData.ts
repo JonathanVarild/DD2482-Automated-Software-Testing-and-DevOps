@@ -247,7 +247,7 @@ export const useApplyPageData = ({ locale, status, onUnauthorized, messages }: U
     }
 
     let active = true;
-    void loadApplicationData({ isActive: () => active });
+    void Promise.resolve().then(() => loadApplicationData({ isActive: () => active }));
 
     return () => {
       active = false;
