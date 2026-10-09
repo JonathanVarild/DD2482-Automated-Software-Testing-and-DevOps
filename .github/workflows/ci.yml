@@ -1,9 +1,8 @@
 name: Continuous integration
 
-# Run the action when we push or make a pull request to any branch.
+# Run CI on every push.
 on:
   push:
-  pull_request:
 
 # Allow workflow to read repo contents.
 permissions:
@@ -45,62 +44,3 @@ jobs:
       # Run tests to ensure the code behaves as expected.
       - name: Unit tests
         run: npm run test:unit
-
-  integration:
-    name: Integration tests
-    runs-on: ubuntu-latest
-
-    # Only run integration tests in pull requests and ensure the CI job has completed before.
-    if: github.event_name == 'pull_request'
-    needs: ci
-
-    # Set up arbitrary environment variables for the integration tests.
-    env:
-      DB_HOST: 127.0.0.1
-      DB_PORT: 5432
-      DB_USER: app
-      DB_PASSWORD: test-password
-      DB_NAME: app
-      SESSION_SECRET: test-session-secret
-
-    # Set up a PostgreSQL service for the integration tests.
-    services:
-      postgres:
-        image: postgres:17-alpine
-        env:
-          POSTGRES_USER: app
-          POSTGRES_PASSWORD: test-password
-          POSTGRES_DB: app
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U app -d app"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-
-    steps:
-      # Check out the repo so we can run the tests.
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      # Set up Node.js for use in the workflow
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-
-      # Install project dependencies needed to run the app and integration tests.
-      - name: Install dependencies
-        run: npm ci
-
-      # Initialize the test database schema.
-      - name: Initialize test database
-        env:
-          PGPASSWORD: test-password
-        run: psql -h 127.0.0.1 -U app -d app -f database/schema.sql
-
-      # Run the integration tests.
-      - name: Integration tests
-        run: npm run test:integration

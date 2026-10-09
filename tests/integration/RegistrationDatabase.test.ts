@@ -7,7 +7,7 @@ import { registerUser } from "@/server/services/authenticationService";
 const user = {
   name: "Test",
   surname: "Test",
-  pnr: "20000101-0000",
+  pnr: "20000101-0001",
   email: "test@test.com",
   password: "Qwerty123!",
   username: "test",
