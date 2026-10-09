@@ -1,10 +1,10 @@
 name: E2E tests
 
-# Make this workflow callable from other workflows and require the preview URL and head SHA as inputs.
+# Make this workflow callable from other workflows and require the deployment URL and head SHA as inputs.
 on:
   workflow_call:
     inputs:
-      preview_url:
+      base_url:
         required: true
         type: string
       head_sha:
@@ -16,17 +16,29 @@ permissions:
   contents: read
 
 jobs:
-  e2e:
-    name: E2E tests
+  smoke:
+    name: Smoke test
     runs-on: ubuntu-latest
-
-    # Set up environment variable for the URL that the E2E tests should run against.
     env:
-      PLAYWRIGHT_BASE_URL: ${{ inputs.preview_url }}
+      PLAYWRIGHT_BASE_URL: ${{ inputs.base_url }}
 
     steps:
-      # Check out the code deployed to the preview.
-      - name: Checkout PR head
+      # Smoke test the deployment by waiting until it is reachable.
+      - name: Check deployment
+        run: curl --fail --silent --show-error --retry 12 --retry-delay 5 --retry-all-errors "$PLAYWRIGHT_BASE_URL/en" >/dev/null
+
+  e2e:
+    name: E2E tests
+    needs: smoke
+    runs-on: ubuntu-latest
+
+    # Set up environment variable for the URL that the tests should run against.
+    env:
+      PLAYWRIGHT_BASE_URL: ${{ inputs.base_url }}
+
+    steps:
+      # Check out the code used by the deployment.
+      - name: Checkout deployed code
         uses: actions/checkout@v4
         with:
           ref: ${{ inputs.head_sha }}
@@ -46,10 +58,6 @@ jobs:
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
-      # Wait until the deployed preview is reachable.
-      - name: Wait for preview
-        run: curl --fail --silent --show-error --retry 12 --retry-delay 5 --retry-all-errors "$PLAYWRIGHT_BASE_URL/en" >/dev/null
-
-      # Run E2E tests against the deployed preview.
+      # Run E2E tests against the deployment.
       - name: E2E tests
         run: npm run test:e2e

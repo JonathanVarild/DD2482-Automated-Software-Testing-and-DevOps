@@ -151,6 +151,24 @@ jobs:
           docker build -t "$APP_IMAGE" .
           docker build -t "$DATABASE_IMAGE" database
 
+      # Scan the app image for critical and high vulnerabilities and stop the workflow if any are found.
+      - name: Scan app image
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: ${{ env.APP_IMAGE }}
+          exit-code: 1
+          ignore-unfixed: true
+          severity: CRITICAL,HIGH
+
+      # Scan the database image for critical and high vulnerabilities and stop the workflow if any are found.
+      - name: Scan database image
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: ${{ env.DATABASE_IMAGE }}
+          exit-code: 1
+          ignore-unfixed: true
+          severity: CRITICAL,HIGH
+
       # Upload the images to GitHub Container Registry so they can be pulled by the VPS.
       - name: Push preview images
         run: |
@@ -187,5 +205,5 @@ jobs:
     needs: preview
     uses: ./.github/workflows/e2e.yml
     with:
-      preview_url: https://pr-${{ github.event.pull_request.number }}.devops.jompecloud.com
+      base_url: https://pr-${{ github.event.pull_request.number }}.devops.jompecloud.com
       head_sha: ${{ github.event.pull_request.head.sha }}
