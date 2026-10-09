@@ -22,7 +22,7 @@ concurrency:
 
 jobs:
   preview:
-    name: Preview PR ${{ github.event.pull_request.number }}
+    name: Preview deployment
     runs-on: ubuntu-latest
 
     # Ensure the workflow only runs for PRs in this repo.
