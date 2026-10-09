@@ -155,7 +155,7 @@ jobs:
 
       # Initalize the Terraform working directory and download provider plugins.
       - name: Terraform init
-        working-directory: terraform
+        working-directory: infra/terraform
         run: terraform init
 
       # Verify the Terraform lock file and ensure that the lockfile is up to date.
@@ -163,7 +163,7 @@ jobs:
       # to the Terraform configuration without updating the lockfile.
       - name: Verify Terraform lock file
         run: |
-          if ! git diff --exit-code -- terraform/.terraform.lock.hcl; then
+          if ! git diff --exit-code -- infra/terraform/.terraform.lock.hcl; then
           echo "::error::.terraform.lock.hcl is out of date."
           exit 1
           fi
@@ -171,7 +171,7 @@ jobs:
       # Plan the Terraform configuration, output the plan so it can be used in apply step,
       # and set a lock timeout to prevent simultaneous runs from interfering with each other.
       - name: Terraform plan
-        working-directory: terraform
+        working-directory: infra/terraform
         env:
           TF_VAR_app_image: ${{ env.APP_IMAGE }}
           TF_VAR_database_image: ${{ env.DATABASE_IMAGE }}
@@ -179,7 +179,7 @@ jobs:
 
       # Apply the Terraform configuration to the VPS.
       - name: Terraform apply
-        working-directory: terraform
+        working-directory: infra/terraform
         env:
           TF_VAR_app_image: ${{ env.APP_IMAGE }}
           TF_VAR_database_image: ${{ env.DATABASE_IMAGE }}

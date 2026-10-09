@@ -116,7 +116,7 @@ jobs:
       # Initalize the Terraform working directory and download provider plugins.
       - name: Terraform init
         if: steps.workspace_check.outputs.exists == 'true'
-        working-directory: terraform
+        working-directory: infra/terraform
         run: terraform init
 
       # Verify the Terraform lock file and ensure that the lockfile is up to date.
@@ -124,7 +124,7 @@ jobs:
       # to the Terraform configuration without updating the lockfile.
       - name: Verify Terraform lock file
         run: |
-          if ! git diff --exit-code -- terraform/.terraform.lock.hcl; then
+          if ! git diff --exit-code -- infra/terraform/.terraform.lock.hcl; then
           echo "::error::.terraform.lock.hcl is out of date."
           exit 1
           fi
@@ -132,7 +132,7 @@ jobs:
       # Destroy the preview infrastructure on the VPS.
       - name: Destroy preview
         if: steps.workspace_check.outputs.exists == 'true'
-        working-directory: terraform
+        working-directory: infra/terraform
         run: terraform destroy -auto-approve -lock-timeout=10m
 
       # Delete the empty HCP Terraform workspace and its preview state.

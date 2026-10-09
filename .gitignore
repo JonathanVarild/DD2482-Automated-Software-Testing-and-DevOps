@@ -26,5 +26,5 @@ npm-debug.log*
 next-env.d.ts
 .eslintcache
 
-/terraform/.terraform
+.terraform/
 test-results
