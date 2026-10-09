@@ -44,11 +44,11 @@ jobs:
     steps:
       # Check out the repo so we can use the Terraform configs.
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # Instantiate Terraform CLI for use in the workflow
       - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@v4
 
       # Save the SSH key to file so it can be used for connectivity.
       - name: Configure SSH
@@ -69,7 +69,7 @@ jobs:
 
       # Authenticate with GitHub Container Registry so we cna push Docker images.
       - name: Log in to GHCR
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -123,8 +123,8 @@ jobs:
       - name: Build fresh images
         if: steps.merged_pr.outputs.head_sha == ''
         run: |
-          docker build -t "$APP_IMAGE" .
-          docker build -t "$DATABASE_IMAGE" database
+          docker build --pull -t "$APP_IMAGE" .
+          docker build --pull -t "$DATABASE_IMAGE" database
 
       # Scan the app image for critical and high vulnerabilities and stop the workflow if any are found.
       - name: Scan app image
