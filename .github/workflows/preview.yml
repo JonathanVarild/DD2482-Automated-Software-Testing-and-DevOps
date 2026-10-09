@@ -180,3 +180,12 @@ jobs:
               issue_number: context.payload.pull_request.number,
               body: `Preview deployed successfully: ${process.env.PREVIEW_URL}`,
             });
+
+  # Run the End-to-End tests after deployment to ensure the deployed application is functioning correctly.
+  e2e:
+    name: E2E tests
+    needs: preview
+    uses: ./.github/workflows/e2e.yml
+    with:
+      preview_url: https://pr-${{ github.event.pull_request.number }}.devops.jompecloud.com
+      head_sha: ${{ github.event.pull_request.head.sha }}
