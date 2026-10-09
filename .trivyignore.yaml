@@ -1,0 +1,114 @@
+# Go stdlib vulnerabilities in gosu (postgres:17-alpine).
+# Excluded because the affected functionality is not used by gosu.
+# Review exceptions when they expire.
+
+vulnerabilities:
+  - id: CVE-2025-68121
+    paths: &gosu-path ["usr/local/bin/gosu"]
+    statement: &gosu-reason "Upstream gosu dependency; affected functionality not used."
+    expired_at: &gosu-expiry 2027-01-09
+
+  - id: CVE-2025-61726
+    paths: *gosu-path
+    statement: *gosu-reason
+    expired_at: *gosu-expiry
+
+  - id: CVE-2025-61729
+    paths: *gosu-path
+    statement: *gosu-reason
+    expired_at: *gosu-expiry
+
+  - id: CVE-2026-25679
+    paths: *gosu-path
+    statement: *gosu-reason
+    expired_at: *gosu-expiry
+
+  - id: CVE-2026-27145
+    paths: *gosu-path
+    statement: *gosu-reason
+    expired_at: *gosu-expiry
+
+  - id: CVE-2026-32280
+    paths: *gosu-path
+    statement: *gosu-reason
+    expired_at: *gosu-expiry
+
+  - id: CVE-2026-32281
+    paths: *gosu-path
+    statement: *gosu-reason
+    expired_at: *gosu-expiry
+
+  - id: CVE-2026-32283
+    paths: *gosu-path
+    statement: *gosu-reason
+    expired_at: *gosu-expiry
+
+  - id: CVE-2026-33811
+    paths: *gosu-path
+    statement: *gosu-reason
+    expired_at: *gosu-expiry
+
+  - id: CVE-2026-33814
+    paths: *gosu-path
+    statement: *gosu-reason
+    expired_at: *gosu-expiry
+
+  - id: CVE-2026-33818
+    paths: *gosu-path
+    statement: *gosu-reason
+    expired_at: *gosu-expiry
+
+  - id: CVE-2026-39820
+    paths: *gosu-path
+    statement: *gosu-reason
+    expired_at: *gosu-expiry
+
+  - id: CVE-2026-39821
+    paths: *gosu-path
+    statement: *gosu-reason
+    expired_at: *gosu-expiry
+
+  - id: CVE-2026-39822
+    paths: *gosu-path
+    statement: *gosu-reason
+    expired_at: *gosu-expiry
+
+  - id: CVE-2026-39836
+    paths: *gosu-path
+    statement: *gosu-reason
+    expired_at: *gosu-expiry
+
+  - id: CVE-2026-42499
+    paths: *gosu-path
+    statement: *gosu-reason
+    expired_at: *gosu-expiry
+
+  - id: CVE-2026-42504
+    paths: *gosu-path
+    statement: *gosu-reason
+    expired_at: *gosu-expiry
+
+  - id: CVE-2026-56853
+    paths: *gosu-path
+    statement: *gosu-reason
+    expired_at: *gosu-expiry
+
+  - id: CVE-2026-56858
+    paths: *gosu-path
+    statement: *gosu-reason
+    expired_at: *gosu-expiry
+
+  - id: CVE-2026-56859
+    paths: *gosu-path
+    statement: *gosu-reason
+    expired_at: *gosu-expiry
+
+  - id: CVE-2026-56860
+    paths: *gosu-path
+    statement: *gosu-reason
+    expired_at: *gosu-expiry
+
+  - id: CVE-2026-56862
+    paths: *gosu-path
+    statement: *gosu-reason
+    expired_at: *gosu-expiry

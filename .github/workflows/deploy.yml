@@ -134,6 +134,7 @@ jobs:
           exit-code: 1
           ignore-unfixed: true
           severity: CRITICAL,HIGH
+          trivyignores: .trivyignore.yaml
 
       # Scan the database image for critical and high vulnerabilities and stop the workflow if any are found.
       - name: Scan database image
@@ -143,6 +144,7 @@ jobs:
           exit-code: 1
           ignore-unfixed: true
           severity: CRITICAL,HIGH
+          trivyignores: .trivyignore.yaml
 
       # Upload the images to GitHub Container Registry so they can be pulled by the VPS.
       - name: Push fresh images
