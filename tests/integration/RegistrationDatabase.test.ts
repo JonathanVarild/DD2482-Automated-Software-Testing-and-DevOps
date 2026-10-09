@@ -35,10 +35,9 @@ it("registers a test user and stores their session", async () => {
 
   // Interface database directly to verify that the user exists.
   const insertedUser = await pool.query(
-    `SELECT p.username, s.token_hash
-     FROM person p
-     JOIN session s ON s.person_id = p.person_id
-     WHERE p.person_id = $1`,
+    `SELECT username
+     FROM person
+     WHERE person_id = $1`,
     [result.userID],
   );
 

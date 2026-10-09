@@ -1,7 +1,7 @@
 "use client";
 
 import { managedFetch } from "@/lib/api";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import ApplicationCard from "./ApplicationCard";
@@ -48,15 +48,13 @@ const createColumnState = (data: Record<ColumnId, PaginatedColumnData>): Record<
  * @param applications An array of applications to be displayed on the kanban board.
  * @returns {JSX.Element} The rendered application board component.
  */
-const ApplicationBoard = ({ initialData }: ApplicationBoardProps) => {
+const ApplicationBoard = ({ initialData }: ApplicationBoardProps) => <ApplicationBoardContent key={JSON.stringify(initialData)} initialData={initialData} />;
+
+const ApplicationBoardContent = ({ initialData }: ApplicationBoardProps) => {
   const t = useTranslations("AdminPage.boardColumns");
   const locale = useLocale();
 
   const [columnState, setColumnState] = useState<Record<ColumnId, ColumnState>>(createColumnState(initialData));
-
-  useEffect(() => {
-    setColumnState(createColumnState(initialData));
-  }, [initialData]);
 
   const loadMore = async (columnId: ColumnId) => {
     const currentColumn = columnState[columnId];
