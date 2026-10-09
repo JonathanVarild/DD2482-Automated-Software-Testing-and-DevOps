@@ -27,5 +27,5 @@ test("switches from English to Swedish", async ({ page }) => {
   await expect(page).toHaveURL(/\/sv$/);
 
   // Check that the heading is shown in Swedish on the page.
-  await expect(page.getByText(svMessages.HomePage.heading)).toBeVisible();
+  await expect(page.getByRole("heading", { name: svMessages.HomePage.heading })).toBeVisible();
 });
