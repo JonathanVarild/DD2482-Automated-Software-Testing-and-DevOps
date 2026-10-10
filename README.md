@@ -2,6 +2,8 @@
 
 This project is based on [JonathanVarild/IV1201-group7-recruitment-application](https://github.com/JonathanVarild/IV1201-group7-recruitment-application) and been extended with a CI/CD pipeline including automated tests, Docker images, and automated Terraform-based preview and production deployments to our Virtual Private Server (VPS).
 
+See [report.pdf](report.pdf) for the project report.
+
 ## Local development
 
 Requirements: Node.js 22, npm, and Docker.
