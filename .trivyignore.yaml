@@ -112,3 +112,18 @@ vulnerabilities:
     paths: *gosu-path
     statement: *gosu-reason
     expired_at: *gosu-expiry
+
+  - id: CVE-2026-78667
+    paths: *gosu-path
+    statement: *gosu-reason
+    expired_at: *gosu-expiry
+
+  - id: CVE-2026-78669
+    paths: *gosu-path
+    statement: *gosu-reason
+    expired_at: *gosu-expiry
+
+  - id: CVE-2026-97031
+    paths: *gosu-path
+    statement: *gosu-reason
+    expired_at: *gosu-expiry

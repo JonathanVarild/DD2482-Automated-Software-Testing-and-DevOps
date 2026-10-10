@@ -30,4 +30,11 @@ Integration tests require PostgreSQL. End-to-end tests use `http://localhost:300
 ## Infrastructure
 
 - `infra/terraform` manages preview and production application deployments.
-- `infra/docker-compose.yml` is the Docker compose configuration behind the VPS reverse proxy and TLS certificate companion.
+- `infra/vps/docker-compose.yml` is the Docker compose configuration behind the VPS reverse proxy and TLS certificate companion.
+
+Deployment requires:
+
+- A VPS with Docker, SSH access for the `deploy` user, and the proxy stack running on the shared `dd2482-proxy` network.
+- An HCP Terraform organization and production workspace.
+- DNS for the production domain and wildcard preview domains pointing to the VPS.
+- GitHub repository secrets: `HCP_TERRAFORM_TOKEN`, `DEPLOY_SSH_KEY`, `DB_PASSWORD`, and `SESSION_SECRET`.
